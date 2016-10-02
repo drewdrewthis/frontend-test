@@ -1,6 +1,6 @@
 'use strict';
 
-var max_results = 5;
+var max_results = 20;
 
 function getData() {
     return $.ajax({
@@ -12,7 +12,7 @@ function getData() {
 function createCarousel(element, image_arr) {
 
     var $carousel = $(element);
-    $carousel.current = 0; // 
+    $carousel.current_image_index = 0; // 
     $carousel.images = image_arr;
 
     function createControls() {
@@ -30,31 +30,34 @@ function createCarousel(element, image_arr) {
     }
 
     $carousel.goToImage = function (index) {
-        console.log('Go to image', index);
-        $('.carousel-item').fadeOut();
-        $('.carousel-item[data-id="' + index + '"]').fadeIn();
+        $('.carousel-item').fadeOut(2000);
+        $('.carousel-item[data-id="' + index + '"]').fadeIn(2000);
 
         if ($carousel.images.length === 0) {
             $carousel.find('.control').hide();
-        } else if ($carousel.current === 0) {
+        }
+        /*
+        // Unnecessary with new looping feature
+        else if ($carousel.current_image_index === 0) {
             $carousel.find('.left-control').hide();
             $carousel.find('.right-control').show();
-        } else if ($carousel.current === $carousel.images.length - 1) {
+        } else if ($carousel.current_image_index === $carousel.images.length - 1) {
             $carousel.find('.left-control').show();
             $carousel.find('.right-control').hide();
-        } else {
-            console.log('show both');
-            $carousel.find('.control').show();
-        }
+        } 
+        */
+        else {
+                $carousel.find('.control').show();
+            }
     };
 
-    $carousel.updateImages = function (images) {
-        $carousel.images = images;
+    $carousel.updateSlides = function (slides, headlines) {
+        $carousel.images = slides;
         $carousel.find('ul').html("");
-        images.forEach(function (url, index) {
+        slides.forEach(function (url, index) {
             if (typeof url === 'string') {
                 // Type check
-                $carousel.find('ul').append('\n\t\t\t\t\t\t<li id="image-' + index + '" \n\t\t\t\t\t\t\tdata-id="' + index + '" \n\t\t\t\t\t\t\tclass="carousel-item" \n\t\t\t\t\t\t\tstyle="background-image:url(\'' + url + '\')"></li>\n\t\t\t\t\t');
+                $carousel.find('ul').append('<li \n                \tid="image-' + index + '" \n\t\t\t\t\tdata-id="' + index + '" \n\t\t\t\t\tclass="carousel-item" \n\t\t\t\t\tstyle="background-image:url(\'' + url + '\')">\n\t\t\t\t\t\t<h1 class="headline">' + (headlines[index] || "Headline Goes Here") + '</h1>\n\t\t\t\t\t</li>\n\t\t\t\t');
             }
         });
 
@@ -62,22 +65,33 @@ function createCarousel(element, image_arr) {
     };
 
     $carousel.nextImage = function () {
-        console.log('Go to image');
-        if ($carousel.images[$carousel.current + 1]) {
-            $carousel.goToImage($carousel.current++);
+        if ($carousel.images[$carousel.current_image_index + 1]) {
+            $carousel.goToImage(++$carousel.current_image_index);
+        } else {
+            // Loop
+            $carousel.goToImage(0);
+            $carousel.current_image_index = 0;
         }
     };
 
     $carousel.prevImage = function () {
-        if ($carousel.images[$carousel.current - 1]) {
-            $carousel.goToImage($carousel.current--);
+        if ($carousel.images[$carousel.current_image_index - 1]) {
+            $carousel.goToImage(--$carousel.current_image_index);
+        } else {
+            // Loop
+            $carousel.goToImage($carousel.images.length - 1);
+            $carousel.current_image_index = $carousel.images.length - 1;
         }
     };
 
     createControls();
     $carousel.append('<ul></ul>');
-    $carousel.updateImages(image_arr);
-
+    $carousel.updateSlides(image_arr, ["Fast, Easy, Flexible", "Book one of our spaces"]);
+    setInterval(function () {
+        if (!$carousel.is(":hover")) {
+            $carousel.nextImage();
+        }
+    }, 6000);
     return $carousel;
 }
 
@@ -106,6 +120,8 @@ function fillPredictor(element, arr) {
 
             $predictor.append('\n\t\t\t<li data-id="' + location.location_id + '" \n\t\t\t\tclass="predictive-item"\n\t\t\t\tdata-name="' + location.name + '">' + location.name + '</li>');
         }
+
+        // Set handler
     } catch (err) {
         _didIteratorError = true;
         _iteratorError = err;
@@ -120,6 +136,13 @@ function fillPredictor(element, arr) {
             }
         }
     }
+
+    console.log('name');
+    $('.predictive-item').on('click', function () {
+        var name = $(this).data('name');
+        console.log(name);
+        $('#location-search-form input[type="text"]').val(name);
+    });
 }
 
 function processSearch(str) {
@@ -133,7 +156,7 @@ function updateResults(locations) {
         var location_name = location.location_name;
         var review_score = location.rating || "-";
         var price = location.day_price ? '$' + location.day_price + "/day" : "";
-        var image_url = location.image_urls[0];
+        var image_url = location.image_urls2[0]; // Use smaller thumbs
 
         $('.results-list').append('<li \n        \tid="location-' + index + '" \n        \tclass="result-item" \n        \tstyle="background-image:url(\'' + image_url + '\')">\n\t\t\t\t<ul class="location-info">\n\t\t\t\t\t<li>' + workplace + '</li>\n\t\t\t\t\t<li>' + location_name + '</li>\n\t\t\t\t\t<li>Score: ' + review_score + '</li>\n\t\t\t\t\t<li>' + price + '</li>\n\t\t\t\t</ul>\n\t\t\t</li>');
     });
@@ -179,29 +202,51 @@ function setEventHandlers() {
     });
 }
 
+function setDimensionsForResponsiveElements() {
+    $('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
+}
+
 var app = {
     init: function init() {
+        if (sessionStorage.getItem('location_data')) {
+            var dataString = sessionStorage.getItem('location_data');
+            app.model = JSON.parse(dataString);
+            app.setUp();
+        } else {
+            app.setData();
+        }
+    },
+    setData: function setData() {
         $.when(getData()).then(function (data) {
-            console.log('Retrieved data'.data);
+            console.log('Retrieved data', data);
+            sessionStorage.setItem('location_data', JSON.stringify(data));
             app.model = data;
-            var locations = data.rows.slice(0, max_results); // Show 
-            // This was initially set up to just have a carousel for one location
-            // let main_images = locations[0].image_urls.concat(locations[0].image_urls2);
-
-            var main_images = data.rows.reduce(function (all_images, location) {
-                return all_images.concat(location.image_urls);
-            }, []);
-
-            console.log(main_images[0].length);
-            app.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
+            init();
         });
+    },
+    setUp: function setUp() {
+        var data = app.model;
+        var locations = data.rows.slice(0, Math.min(max_results, data.rows.length - 1));
+        // This was initially set up to just have a carousel for one location
+        // let main_images = locations[0].image_urls.concat(locations[0].image_urls2);
+
+        var main_images = data.rows.reduce(function (all_images, location) {
+            return all_images.concat(location.image_urls);
+        }, []);
+
+        console.log(main_images[0].length);
+        app.main_carousel = createCarousel('carousel', main_images);
+        updateResults(locations);
 
         setEventHandlers();
+        setDimensionsForResponsiveElements();
     }
-
 };
 
 $(document).ready(function () {
     app.init();
+});
+
+$(window).resize(function () {
+    setDimensionsForResponsiveElements();
 });

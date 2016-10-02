@@ -1,6 +1,6 @@
 'use strict';
 
-const max_results = 5;
+const max_results = 20;
 
 function getData() {
     return $.ajax({
@@ -12,7 +12,7 @@ function getData() {
 function createCarousel(element, image_arr) {
 
     var $carousel = $(element);
-    $carousel.current = 0; // 
+    $carousel.current_image_index = 0; // 
     $carousel.images = image_arr;
 
     function createControls() {
@@ -41,59 +41,76 @@ function createCarousel(element, image_arr) {
     }
 
     $carousel.goToImage = function(index) {
-        console.log('Go to image', index);
-        $('.carousel-item').fadeOut();
-        $(`.carousel-item[data-id="${index}"]`).fadeIn();
+        $('.carousel-item').fadeOut(2000);
+        $(`.carousel-item[data-id="${index}"]`).fadeIn(2000);
 
         if ($carousel.images.length === 0) {
             $carousel.find('.control').hide();
-        } else if ($carousel.current === 0) {
+        } 
+        /*
+        // Unnecessary with new looping feature
+        else if ($carousel.current_image_index === 0) {
             $carousel.find('.left-control').hide();
             $carousel.find('.right-control').show();
-        } else if ($carousel.current === $carousel.images.length - 1) {
+        } else if ($carousel.current_image_index === $carousel.images.length - 1) {
             $carousel.find('.left-control').show();
             $carousel.find('.right-control').hide();
-        } else {
-            console.log('show both');
+        } 
+        */
+        else {
             $carousel.find('.control').show();
         }
     }
 
-    $carousel.updateImages = function(images) {
-        $carousel.images = images;
+    $carousel.updateSlides = function(slides, headlines) {
+        $carousel.images = slides;
         $carousel.find('ul').html("");
-        images.forEach(function(url, index) {
+        slides.forEach(function(url, index) {
             if (typeof url === 'string') { // Type check
-                $carousel.find('ul').append(`
-						<li id="image-${index}" 
-							data-id="${index}" 
-							class="carousel-item" 
-							style="background-image:url('${url}')"></li>
-					`);
+                $carousel.find('ul').append(`<li 
+                	id="image-${index}" 
+					data-id="${index}" 
+					class="carousel-item" 
+					style="background-image:url('${url}')">
+						<h1 class="headline">${headlines[index] || "Headline Goes Here"}</h1>
+					</li>
+				`);
             }
-
         });
 
         $carousel.goToImage(0);
     }
 
     $carousel.nextImage = function() {
-        console.log('Go to image');
-        if ($carousel.images[$carousel.current + 1]) {
-            $carousel.goToImage($carousel.current++);
+        if ($carousel.images[$carousel.current_image_index + 1]) {
+            $carousel.goToImage(++$carousel.current_image_index);
+        }
+        else {
+        	// Loop
+        	$carousel.goToImage(0);
+        	$carousel.current_image_index = 0;
         }
     }
 
     $carousel.prevImage = function() {
-        if ($carousel.images[$carousel.current - 1]) {
-            $carousel.goToImage($carousel.current--);
+        if ($carousel.images[$carousel.current_image_index - 1]) {
+            $carousel.goToImage(--$carousel.current_image_index);
+        }
+        else {
+        	// Loop
+        	$carousel.goToImage($carousel.images.length - 1);
+        	$carousel.current_image_index = $carousel.images.length - 1;
         }
     }
 
     createControls();
     $carousel.append('<ul></ul>');
-    $carousel.updateImages(image_arr)
-
+    $carousel.updateSlides(image_arr, ["Fast, Easy, Flexible", "Book one of our spaces"]);
+    setInterval(function() {
+    	if(!$carousel.is(":hover")) {
+    		$carousel.nextImage();
+    	}
+    }, 6000);
     return $carousel;
 }
 
@@ -116,11 +133,20 @@ function fillPredictor(element, arr) {
 				class="predictive-item"
 				data-name="${location.name}">${location.name}</li>`);
     }
+
+    // Set handler
+    console.log('name');
+    $('.predictive-item').on('click', function(){
+    	let name = $(this).data('name');
+    	console.log(name);
+    	$('#location-search-form input[type="text"]').val(name);
+    })
 }
 
 function processSearch(str) {
     console.log(str);
     $('#location-search-form input[type="text"]').val("");
+
 }
 
 function updateResults(locations) {
@@ -129,7 +155,7 @@ function updateResults(locations) {
         let location_name = location.location_name;
         let review_score = location.rating || "-";
         let price = (location.day_price) ? '$' + location.day_price + "/day" : "";
-        let image_url = location.image_urls[0];
+        let image_url = location.image_urls2[0]; // Use smaller thumbs
 
         $('.results-list').append(`<li 
         	id="location-${index}" 
@@ -142,6 +168,8 @@ function updateResults(locations) {
 					<li>${price}</li>
 				</ul>
 			</li>`);
+
+
     });
 }
 
@@ -185,29 +213,52 @@ function setEventHandlers() {
     })
 }
 
+function setDimensionsForResponsiveElements() {
+	$('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
+}
+
 var app = {
-    init: function() {
+	init: function() {
+		if (sessionStorage.getItem('location_data')) {
+			let dataString = sessionStorage.getItem('location_data')
+			app.model = JSON.parse(dataString);
+			app.setUp();
+		}
+		else {
+			app.setData();
+		}
+	},
+    setData: function() {
         $.when(getData()).then(function(data) {
-            console.log('Retrieved data'.data);
+            console.log('Retrieved data', data);
+            sessionStorage.setItem('location_data', JSON.stringify(data));
             app.model = data;
-            let locations = data.rows.slice(0, max_results); // Show 
-            // This was initially set up to just have a carousel for one location
-            // let main_images = locations[0].image_urls.concat(locations[0].image_urls2);
-
-            let main_images = data.rows.reduce(function(all_images, location) {
-            	return all_images.concat(location.image_urls);
-            }, []);
-
-            console.log(main_images[0].length);
-            app.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
+            init();
         });
-
-        setEventHandlers();
     },
+    setUp: function() {
+    	let data = app.model;
+    	let locations = data.rows.slice(0, Math.min(max_results, data.rows.length -1) );
+    	// This was initially set up to just have a carousel for one location
+    	// let main_images = locations[0].image_urls.concat(locations[0].image_urls2);
 
+    	let main_images = data.rows.reduce(function(all_images, location) {
+    		return all_images.concat(location.image_urls);
+    	}, []);
+
+    	console.log(main_images[0].length);
+    	app.main_carousel = createCarousel('carousel', main_images);
+    	updateResults(locations);
+
+    	setEventHandlers();
+    	setDimensionsForResponsiveElements();
+    }
 }
 
 $(document).ready(function() {
     app.init();
 });
+
+$(window).resize(function() {
+	setDimensionsForResponsiveElements();
+})
