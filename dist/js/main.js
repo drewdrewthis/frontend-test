@@ -21,11 +21,11 @@ function createCarousel(element, image_arr) {
 		$carousel.append(template);
 
 		$carousel.find('.right-control').on('click', function () {
-			app.components.carousel.nextImage();
+			$carousel.nextImage();
 		});
 
 		$carousel.find('.left-control').on('click', function () {
-			app.components.carousel.prevImage();
+			$carousel.prevImage();
 		});
 	}
 
@@ -50,6 +50,7 @@ function createCarousel(element, image_arr) {
 
 	$carousel.updateImages = function (images) {
 		$carousel.images = images;
+		$carousel.find('ul').html("");
 		images.map(function (url, index) {
 			$carousel.find('ul').append('\n\t\t\t\t\t<li id="image-' + index + '" \n\t\t\t\t\t\tdata-id="' + index + '" \n\t\t\t\t\t\tclass="carousel-item" \n\t\t\t\t\t\tstyle="background-image:url(\'' + url + '\')"></li>\n\t\t\t\t');
 		});
@@ -74,33 +75,6 @@ function createCarousel(element, image_arr) {
 	$carousel.updateImages(image_arr);
 
 	return $carousel;
-}
-
-function setEventHandlers() {
-	// Search form
-	$('#location-search-form').submit(function (e) {
-		var search_inquiry = $('input[type="text"]').val();
-		e.preventDefault();
-		console.log(search_inquiry);
-		processSearch(search_inquiry);
-		$('input[type="text"]').val("");
-	});
-
-	// Search form predictive search
-	$('#location-search-form input[type="text"]').focus(function () {
-		$('#location-search-form input[type="text"]').keydown(function (e) {
-			var search_inquiry = $('#location-search-form input[type="text"]').val();
-			console.log(search_inquiry);
-			predictSearch(search_inquiry);
-			$('.predictive-box').show();
-		});
-	});
-
-	$('.predictive-item').on('click', function () {
-		$('.predictive-results').html("");
-		processSearch($(this).data('name'));
-		$('.predictive-box').hide();
-	});
 }
 
 function predictSearch(str) {
@@ -161,6 +135,46 @@ function updateResults(locations) {
 	});
 }
 
+function setEventHandlers() {
+	// Search form
+	$('#location-search-form').submit(function (e) {
+		var search_inquiry = $('input[type="text"]').val();
+		e.preventDefault();
+		console.log(search_inquiry);
+		processSearch(search_inquiry);
+		$('input[type="text"]').val("");
+	});
+
+	// Search form predictive search
+	$('#location-search-form input[type="text"]').focus(function () {
+		$('#location-search-form input[type="text"]').keydown(function (e) {
+			var search_inquiry = $('#location-search-form input[type="text"]').val();
+			console.log(search_inquiry);
+			predictSearch(search_inquiry);
+			$('.predictive-box').show();
+		});
+	});
+
+	$('#location-search-form input[type="text"]').focus(function () {
+		$('#location-search-form input[type="text"]').keydown(function (e) {
+			var search_inquiry = $('#location-search-form input[type="text"]').val();
+			console.log(search_inquiry);
+			predictSearch(search_inquiry);
+			$('.predictive-box').show();
+		});
+	});
+
+	$('#location-search-form input[type="text"]').focusout(function () {
+		$('.predictive-box').hide();
+	});
+
+	$('.predictive-item').on('click', function () {
+		$('.predictive-results').html("");
+		processSearch($(this).data('name'));
+		$('.predictive-box').hide();
+	});
+}
+
 var app = {
 	init: function init() {
 		$.when(getData()).then(function (data) {
@@ -176,6 +190,7 @@ var app = {
 
 		setEventHandlers();
 	}
+
 };
 
 $(document).ready(function () {

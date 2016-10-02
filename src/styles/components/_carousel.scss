@@ -1,5 +1,5 @@
 .carousel-section {
-	height: calc(100% - 10px);
+	height: calc(100% - #{$header-height});
 	width: 100%;
 	position: relative;
 	carousel ul {

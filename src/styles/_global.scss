@@ -1,5 +1,6 @@
 $darkgrey: #2a2a2a;
 $darkblue: #2e2d58;
+$header-height: 35px;
 
 * {
 	box-sizing: border-box;
@@ -19,7 +20,7 @@ body {
 	border-bottom: 3px solid $darkblue;
 	a {
 		display: inline-block;
-		height: 35px;
+		height: $header-height;
 		img {
 			height: 100%;
 			width: auto;
