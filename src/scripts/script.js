@@ -1,5 +1,7 @@
 'use strict';
 
+const max_results = 5;
+
 function getData() {
     return $.ajax({
         dataType: "json",
@@ -7,99 +9,182 @@ function getData() {
     });
 }
 
+function createCarousel(element, image_arr) {
+
+	var $carousel = $(element);
+	$carousel.current = 0; // 
+	$carousel.images = image_arr;
+	
+	function createControls() {
+		var template = `
+			<div class="control-wrapper left">
+				<div class="control left-control">
+					<i class="fa fa-chevron-left" aria-hidden="true"></i>
+				</div>
+			</div>
+			<div class="control-wrapper right">
+				<div class="control right-control">
+					<i class="fa fa-chevron-right" aria-hidden="true"></i>
+				</div>
+			</div>
+		`;
+
+		$carousel.append(template);
+
+		$carousel.find('.right-control').on('click', function() {
+			app.components.carousel.nextImage();
+		});
+
+		$carousel.find('.left-control').on('click', function() {
+			app.components.carousel.prevImage();
+		});
+	}
+
+	$carousel.goToImage = function(index) {
+		console.log('Go to image', index);
+		$('.carousel-item').fadeOut();
+		$(`.carousel-item[data-id="${index}"]`).fadeIn();
+
+		if($carousel.images.length === 0 ) {
+			$carousel.find('.control').hide();
+		}
+		else if($carousel.current === 0) {
+			$carousel.find('.left-control').hide();
+			$carousel.find('.right-control').show();
+		} 
+		else if ($carousel.current === $carousel.images.length - 1) {
+			$carousel.find('.left-control').show();
+			$carousel.find('.right-control').hide();
+		}
+		else {
+			console.log('show both');
+			$carousel.find('.control').show();
+		}
+	}
+
+	$carousel.updateImages = function(images) {
+		$carousel.images = images;
+        images.map(function(url, index) {
+            $carousel.find('ul').append(`
+					<li id="image-${index}" 
+						data-id="${index}" 
+						class="carousel-item" 
+						style="background-image:url('${url}')"></li>
+				`);
+        });
+        $carousel.goToImage(0);
+	}
+
+	$carousel.nextImage = function() {
+		console.log('Go to image');
+		if ($carousel.images[$carousel.current + 1]) {
+			$carousel.goToImage($carousel.current++);
+		}	
+	}
+
+	$carousel.prevImage = function() {
+		if ($carousel.images[$carousel.current - 1]) {
+			$carousel.goToImage($carousel.current--);
+		}
+	}
+
+	createControls();
+	$carousel.append('<ul></ul>');
+	$carousel.updateImages(image_arr)
+
+	return $carousel;
+}
+
+function setEventHandlers() {
+	// Search form
+	$('#location-search-form').submit(function(e) {
+	    let search_inquiry = $('input[type="text"]').val();
+	    e.preventDefault();
+	    console.log(search_inquiry);
+	    processSearch(search_inquiry);
+	    $('input[type="text"]').val("");
+	});
+
+	// Search form predictive search
+	$('#location-search-form input[type="text"]').focus(function() {
+		$('#location-search-form input[type="text"]').keydown(function(e) {
+			let search_inquiry = $('#location-search-form input[type="text"]').val();
+			 console.log(search_inquiry);
+			predictSearch(search_inquiry);
+			$('.predictive-box').show();
+		})
+	});
+
+	$('.predictive-item').on('click', function() {
+		$('.predictive-results').html("");
+		processSearch($(this).data('name'));
+		$('.predictive-box').hide();
+	})	
+}
+
+function predictSearch(str) {
+	let locations = app.model.rows;
+	locations.sort((a,b) => a.name.localeCompare(b.name));
+	let results = locations.filter(function(place) {
+		return place.name.toLowerCase().includes(str.toLowerCase());
+	});
+	fillPredictor('.predictive-results', results.slice(0,5));
+}
+
+function fillPredictor(element, arr) {
+	var $predictor = $(element);
+	$predictor.html("");
+	console.log(arr);
+	for(let location of arr) {
+		$predictor.append(`
+			<li data-id="${location.location_id}" 
+				class="predictive-item"
+				data-name="${location.name}">${location.name}</li>`
+			);
+	}
+}
+
+function processSearch(str) {
+	console.log(str);
+	$('#location-search-form input[type="text"]').val("");
+}
+
+function updateResults(locations) {
+    locations.map(function(location, index) {
+        let workplace = location.name;
+        let location_name = location.location_name;
+        let review_score = location.rating || "-";
+        let price = (location.day_price) ? '$' + location.day_price + "/day" : "";
+        let image_url = location.image_urls[0];
+
+        $('.results-list').append(`<li 
+        	id="location-${index}" 
+        	class="result-item" 
+        	style="background-image:url('${image_url}')">
+				<ul class="location-info">
+					<li>${workplace}</li>
+					<li>${location_name}</li>
+					<li>Score: ${review_score}</li>
+					<li>${price}</li>
+				</ul>
+			</li>`);
+    });
+}
+
 var app = {
     init: function() {
         $.when(getData()).then(function(data) {
-            app.model = data;
-            console.log(app.model);
-            app.controller.init();
+        	console.log('Retrieved data'. data);
+        	app.model = data;
+        	let locations = data.rows.slice(0, max_results); // Show 
+        	let main_images = locations[0].image_urls.concat(locations[0].image_urls2);
+            
+            // Create components
+            app.main_carousel = createCarousel('carousel',main_images);
+        	updateResults(locations);
         });
 
-        $('#location-search-form').submit(function(e) {
-            let search_inquiry = $('input[type="text"]').val();
-            e.preventDefault();
-            console.log(search_inquiry);
-            app.controller.processSearch(search_inquiry);
-            $('input[type="text"]').val("");
-        })
-
-        $('#location-search-form input[type="text"]').focus(function() {
-        	$('#location-search-form input[type="text"]').keydown(function(e) {
-        		let search_inquiry = $('#location-search-form input[type="text"]').val();
-        		 console.log(search_inquiry);
-        		app.controller.predictSearch(search_inquiry);
-        		$('.predictive-box').show();
-        	})
-        })
-    },
-    view: {
-        num_of_results: 5
-    },
-    controller: {
-        init: function() {
-            let num = app.view.num_of_results;
-            let locations = app.model.rows.slice(0, num); // Show 
-            let main_images = locations[0].image_urls.concat(locations[0].image_urls2);
-            console.log(locations);
-            console.log(main_images);
-            app.controller.updateResults(locations);
-            app.controller.updateMainCarouselImages(main_images);
-        },
-        updateMainCarouselImages: function(images) {
-            images.map(function(url, index) {
-                $('.carousel').append(`
-						<li id="image-${index}" class="carousel-item" style="background-image:url('${url}')"></li>
-					`);
-            });
-        },
-        updateResults: function(locations) {
-            locations.map(function(location, index) {
-                let workplace = location.name;
-                let location_name = location.location_name;
-                let review_score = location.rating || "-";
-                let price = (location.day_price) ? '$' + location.day_price + "/day" : "";
-                let image_url = location.image_urls[0];
-
-                $('.results-list').append(`<li id="location-${index}" class="result-item" style="background-image:url('${image_url}')">
-							<ul class="location-info">
-								<li>${workplace}</li>
-								<li>${location_name}</li>
-								<li>Score: ${review_score}</li>
-								<li>${price}</li>
-							</ul>
-						</li>`);
-            });
-        },
-        predictSearch: function(str) {
-        	let locations = app.model.rows;
-        	locations.sort((a,b) => a.name.localeCompare(b.name));
-        	let results = locations.filter(function(place) {
-        		return place.name.toLowerCase().includes(str.toLowerCase());
-        	});
-        	app.controller.fillPredictor(results.slice(0,5));
-
-        },
-        fillPredictor: function(arr) {
-        	$('.predictive-results').html("");
-        	console.log(arr);
-        	for(let location of arr) {
-        		$('.predictive-results').append(`
-        			<li data-id="${location.location_id}" 
-        				class="predictive-item"
-        				data-name="${location.name}">${location.name}</li>`
-        			);
-        	}
-        	$('.predictive-item').on('click', function() {
-        		$('.predictive-results').html("");
-        		app.controller.processSearch($(this).data('name'));
-        		$('.predictive-box').hide();
-        	})
-        	
-        },
-        processSearch: function(str) {
-        	console.log(str);
-        	$('#location-search-form input[type="text"]').val("");
-        }
+        setEventHandlers();
     }
 }
 

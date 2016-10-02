@@ -2,41 +2,62 @@
 	height: calc(100% - 10px);
 	width: 100%;
 	position: relative;
-	ul.carousel {
+	carousel ul {
 		height: 100%;
 		width: 100%;
 		overflow: hidden;
 		li.carousel-item {
+			position: absolute;
+			top: 0;
+			left: 0;
 			height: 100%;
 			width: 100%;
-			display: inline-block;
+			display: none;
 			background-size: cover;
 			background-position: center center;
 		}
 	}
-	.control {
+	.control-wrapper {
+		width: 50%;
 		height: 100%;
-		width: 30px;
-		background: $darkblue;
 		position: absolute;
-		opacity: .3;
-		&:hover {
-			opacity: .8;
-		}
-		.fa {
-			color: white;
-			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%,-50%);
-		}
-		&.left-control {
+		opacity: 0;
+		z-index: 10;
+		&.left {
 			left: 0;
 		}
-		&.right-control {
+		&.right {
 			right: 0;
 		}
+		&:hover {
+			opacity:1;
+		}
+		.control {
+			height: 100%;
+			width: 30px;
+			background: $darkblue;
+			position: absolute;
+			opacity: .3;
+			cursor: pointer;
+			&:hover {
+				opacity: .8;
+			}
+			.fa {
+				color: white;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%,-50%);
+			}
+			&.left-control {
+				left: 0;
+			}
+			&.right-control {
+				right: 0;
+			}
+		}
 	}
+	
 	.search-box {
 		position: absolute;
 		bottom: 20%;
