@@ -20,10 +20,17 @@ var paths = {
         styles: 'src/styles/**/*.scss'
     };
 
-gulp.task('copy-dependencies', function() {
+gulp.task('jquery', function() {
 	return gulp.src('node_modules/jquery/dist/jquery.min.js')
 	  .pipe(gulp.dest('dist/js/vendor'));
 });
+
+gulp.task('fa', function() {
+	return gulp.src('node_modules/font-awesome/**')
+	  .pipe(gulp.dest('dist/fonts/font-awesome/'));
+});
+
+
 
 gulp.task('copy-html', function() {
 	return gulp.src('src/index.html')
@@ -82,3 +89,4 @@ gulp.task('watch', function() {
 });
 
 gulp.task('default', ['styles', 'scripts','images','copy-html']);
+gulp.task('copy-dependencies',['fa','jquery']);
