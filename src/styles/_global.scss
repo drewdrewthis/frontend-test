@@ -1,0 +1,133 @@
+$darkgrey: #2a2a2a;
+$darkblue: #2e2d58;
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	height: 100vh;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	font-family: 'Helvetica Neue';
+}
+
+#header {
+	width: 100%;
+	padding: 5px;
+	border-bottom: 3px solid $darkblue;
+	a {
+		display: inline-block;
+		height: 35px;
+		img {
+			height: 100%;
+			width: auto;
+		}
+	}
+}
+
+ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	li {
+		margin: 0;
+		padding: 0;
+	}
+}
+
+.carousel-section {
+	height: calc(100% - 10px);
+	width: 100%;
+	position: relative;
+	ul.carousel {
+		height: 100%;
+		width: 100%;
+		overflow: hidden;
+		li.carousel-item {
+			height: 100%;
+			width: 100%;
+			display: inline-block;
+			background-size: cover;
+			background-position: center center;
+		}
+	}
+	.search-box {
+		position: absolute;
+		bottom: 20%;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 10;
+		width: 45%;
+		min-width: 500px;
+		#location-search-form {
+			border-radius: 25px;
+			overflow: hidden;
+			input {
+				padding: 10px;
+				border: none;
+				outline: none!important;
+				font-size: 1.1em;
+				&[type="text"] {
+					width: 75%;
+				}
+				&[type="submit"] {
+					width: 25%;
+					background: $darkblue;
+					color: white;
+					text-transform: uppercase;
+				}
+			}
+		}
+		.predictive-box {
+			display: none;
+			position: absolute;
+			background: white;
+			border: 1px solid;
+			color: $darkblue;
+			border-radius: 5px;
+			width: 100%;
+			margin-top: 10px;
+			li {
+				padding-left: 10px;
+				border-bottom: 1px solid lightgrey;
+			}
+		}
+	}
+	
+}
+
+.results-section {
+	width: 100%;
+	background: $darkgrey;
+	ul.results-list {
+		width: 100%;
+		overflow: hidden;
+		li.result-item {
+			height: 200px;
+			width: calc(100% / 5); // 5 images
+			background-size: cover;
+			background-position: center center;
+			display: inline-block;
+			overflow: hidden;
+			position: relative;
+			opacity: 0.7;
+			&:hover {
+				opacity: 1;
+			}
+			ul.location-info {
+				position: absolute;
+				width: 100%;
+				bottom: 0;
+				background-color: rgba(0,0,0,.5);
+				color: white;
+				padding: 10px;
+				li {
+					text-shadow: 0 0 5px black;
+				}
+			}
+		}
+	}
+}
+
