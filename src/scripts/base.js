@@ -12,7 +12,10 @@ function getData(search_inquiry) {
 }
 
 function setDimensionsForResponsiveElements() {
-    $('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
+    // Set width of results list by figuring out 1/5 of window width 
+    // then multiplying that by the number of items
+    // Gives
+    $('ul.results-list').css('width', $('.result-item').width() * $('.result-item').length + 'px');
 }
 
 var app = {
