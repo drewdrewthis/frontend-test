@@ -6,6 +6,7 @@
 		height: 100%;
 		width: 100%;
 		overflow: hidden;
+		position: relative;
 		li.carousel-item {
 			position: absolute;
 			top: 0;
@@ -22,7 +23,7 @@
 				position: absolute;
 				width: 100%;
 				text-align: center;
-				top: 50%;
+				top: calc(50% - #{$header-height});
 				left: 50%;
 				transform: translate(-50%,-50%);
 			}

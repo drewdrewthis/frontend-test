@@ -6,7 +6,8 @@ function updateResults(locations) {
         let workplace = location.name;
         let location_name = location.location_name;
         let review_score = location.rating || "-";
-        let price = (location.day_price) ? '$' + location.day_price + "/day" : "";
+        let day_price = (location.day_price) ? '€' + location.day_price + "/day" : "";
+        let hour_price = (location.hour_price) ? '€' + location.hour_price + "/hour" : "";
         let image_url = location.image_urls2[0]; // Use smaller thumbs
 
         $('.results-list').append(`<li 
@@ -15,10 +16,11 @@ function updateResults(locations) {
             style="background-image:url('${image_url}'); display: none;">
                 <a href="${location_url || "#"}">
                     <ul class="location-info">
-                        <li>${workplace}</li>
+                        <li class="first-line">${workplace}</li>
                         <li>${location_name}</li>
                         <li>Score: ${review_score}</li>
-                        <li>${price}</li>
+                        <li>${day_price}</li>
+                        <li>${hour_price}</li>
                     </ul>
                 </a>
             </li>`);

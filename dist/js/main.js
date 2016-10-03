@@ -180,10 +180,11 @@ function updateResults(locations) {
         var workplace = location.name;
         var location_name = location.location_name;
         var review_score = location.rating || "-";
-        var price = location.day_price ? '$' + location.day_price + "/day" : "";
+        var day_price = location.day_price ? '€' + location.day_price + "/day" : "";
+        var hour_price = location.hour_price ? '€' + location.hour_price + "/hour" : "";
         var image_url = location.image_urls2[0]; // Use smaller thumbs
 
-        $('.results-list').append('<li \n            id="location-' + index + '" \n            class="result-item" \n            style="background-image:url(\'' + image_url + '\'); display: none;">\n                <a href="' + (location_url || "#") + '">\n                    <ul class="location-info">\n                        <li>' + workplace + '</li>\n                        <li>' + location_name + '</li>\n                        <li>Score: ' + review_score + '</li>\n                        <li>' + price + '</li>\n                    </ul>\n                </a>\n            </li>');
+        $('.results-list').append('<li \n            id="location-' + index + '" \n            class="result-item" \n            style="background-image:url(\'' + image_url + '\'); display: none;">\n                <a href="' + (location_url || "#") + '">\n                    <ul class="location-info">\n                        <li class="first-line">' + workplace + '</li>\n                        <li>' + location_name + '</li>\n                        <li>Score: ' + review_score + '</li>\n                        <li>' + day_price + '</li>\n                        <li>' + hour_price + '</li>\n                    </ul>\n                </a>\n            </li>');
         $('#location-' + index).fadeIn(1000 * index); // Creates cool progressive fade in
     });
 }
