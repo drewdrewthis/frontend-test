@@ -24,7 +24,8 @@ var app = {
         location_names: undefined //Possible search results
     },
     components: {
-        main_carousel: undefined // 
+        main_carousel: undefined, // 
+        results_area: undefined
     },
     init: function init() {
         // Use session storage if available
@@ -65,7 +66,8 @@ var app = {
         $(document).ready(function () {
             app.model.location_names = createSearchList(app.model.raw_data.rows);
             app.components.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
+            app.components.results_area = createResultsArea();
+            app.components.results_area.update(locations);
             $('.search-box').show();
             setEventHandlers();
             setDimensionsForResponsiveElements();
@@ -189,6 +191,13 @@ function revealResultsArea() {
         scrollTop: $(".results-section").height()
     }, 1000);
 }
+
+function createResultsArea() {
+    return {
+        update: updateResults,
+        scrollTo: revealResultsArea
+    };
+}
 'use strict';
 
 function createSearchList(locations) {
@@ -295,7 +304,7 @@ function processSearch(str) {
         app.model.locations = createResultsList(str);
 
         // Update results and reset responsive elements
-        updateResults(app.model.locations);
+        app.components.results_area.update(locations);app.model.locations;
         setDimensionsForResponsiveElements();
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();
@@ -303,7 +312,7 @@ function processSearch(str) {
         console.error("Could not connect to API.", "Using session storage..", error);
         app.model.locations = createResultsList(str);
         // Update results and reset responsive elements
-        updateResults(app.model.locations);
+        app.components.results_area.update(app.model.locations);
         setDimensionsForResponsiveElements();
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();

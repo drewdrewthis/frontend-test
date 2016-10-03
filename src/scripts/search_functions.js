@@ -89,7 +89,7 @@ function processSearch(str) {
         app.model.locations = createResultsList(str);
 
         // Update results and reset responsive elements
-        updateResults(app.model.locations);
+        app.components.results_area.update(locations);(app.model.locations);
         setDimensionsForResponsiveElements();
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();
@@ -97,7 +97,7 @@ function processSearch(str) {
         console.error("Could not connect to API.","Using session storage..", error);
         app.model.locations = createResultsList(str);
         // Update results and reset responsive elements
-        updateResults(app.model.locations);
+        app.components.results_area.update(app.model.locations);
         setDimensionsForResponsiveElements();
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();

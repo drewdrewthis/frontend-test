@@ -24,7 +24,8 @@ var app = {
         location_names: undefined //Possible search results
     },
     components: {
-        main_carousel: undefined // 
+        main_carousel: undefined, // 
+        results_area: undefined
     },
     init: function() {
         // Use session storage if available
@@ -66,7 +67,8 @@ var app = {
         $(document).ready(function() {
             app.model.location_names = createSearchList(app.model.raw_data.rows);
             app.components.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
+            app.components.results_area = createResultsArea();
+            app.components.results_area.update(locations);
             $('.search-box').show();
             setEventHandlers();
             setDimensionsForResponsiveElements();

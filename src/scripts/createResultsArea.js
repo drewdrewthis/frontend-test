@@ -32,3 +32,10 @@ function revealResultsArea() {
         scrollTop: $(".results-section").height()
      }, 1000);
 }
+
+function createResultsArea() {
+    return {
+        update: updateResults,
+        scrollTo: revealResultsArea
+    }
+}
