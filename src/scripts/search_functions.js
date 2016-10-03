@@ -81,11 +81,21 @@ function processSearch(str) {
     $('.results-list').html("");
     $('.results-section .loader').show();
     $('#location-search-form input[type="text"]').val("");
+    
     $.when(getData(str)).then(function(data) {
         // Pretend to get new search results with new query
         // and update model
+        app.model.raw_data = data;
         app.model.locations = createResultsList(str);
 
+        // Update results and reset responsive elements
+        updateResults(app.model.locations);
+        setDimensionsForResponsiveElements();
+        // Hide loader after loading new results
+        $('.results-section .loader').fadeOut();
+    }).fail(function(error) {
+        console.error("Could not connect to API","Using session storage..", error);
+        app.model.locations = createResultsList(str);
         // Update results and reset responsive elements
         updateResults(app.model.locations);
         setDimensionsForResponsiveElements();
