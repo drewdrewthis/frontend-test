@@ -20,7 +20,7 @@ function setDimensionsForResponsiveElements() {
 
 var app = {
     // Initialize the app
-    // This lays out the structure
+    // This lays out the structure as a reference
     model: {
         raw_data: undefined, //All data from server
         locations: undefined, //Current result data
@@ -28,16 +28,23 @@ var app = {
     },
     components: {
         main_carousel: undefined, // 
-        results_area: undefined
+        results_area: {
+            update: undefined, // Update results area
+            revealResultsArea: undefined // Scroll down to reveal results
+        }
     },
     init: function init() {
         // Use session storage if available
         if (sessionStorage.getItem('location_data')) {
+            // Get data from session storage as string
             var dataString = sessionStorage.getItem('location_data');
+            // Parse to JSON for use in app
             app.model.raw_data = JSON.parse(dataString);
             console.log('Using data from session storage..', app.model.raw_data);
+            // Now that data is set, set up
             app.setUp();
         } else {
+            // Show loader while waiting for api
             $('.loader').show();
             app.setData();
         }
@@ -46,9 +53,11 @@ var app = {
     setData: function setData() {
         $.when(getData()).then(function (data) {
             console.log('Retrieved data', data);
+            // Store data into sessions storage
             sessionStorage.setItem('location_data', JSON.stringify(data));
             app.model.raw_data = data;
             app.setUp();
+            // Once everything is loaded, fade loader
             $('.loader').fadeOut();
         });
     },
@@ -175,6 +184,9 @@ function createCarousel(element, image_arr) {
 function updateResults(locations) {
     // Fill results div
     console.log('Update Results', locations);
+
+    // Iterate through returned results and use list to 
+    // populate results section
     locations.map(function (location, index) {
         var location_url = location.url;
         var workplace = location.name;
@@ -199,14 +211,36 @@ function revealResultsArea() {
 function createResultsArea() {
     return {
         update: updateResults,
-        scrollTo: revealResultsArea
+        revealResultsArea: revealResultsArea
     };
 }
 'use strict';
 
+function createResultsList(str) {
+    // Create a new array of locations that match search query
+    // This is a helper function to simulate new search results
+    // If a full API was used, we wouldn't need this function
+    // as we would have "filtered" results already from API payload
+    var locations = app.model.raw_data.rows;
+    if (!str) return locations; // If no search criteria, return whole list
+    var results = locations.filter(function (location) {
+        if (location.name === str || location.location_name === str || location.location_city === str) {
+            return true;
+        } else {
+            return false;
+        }
+    });
+
+    return results;
+}
+
 function createSearchList(locations) {
+    // Takes an array of locations
+    // 1. Reduce to new list just of location names of various type
+    // 2. Remove all duplicates
+    // 3. Sort
+    // 4. Return list
     var place_hash = {};
-    // Create a list of places to search
     var location_names = locations.reduce(function (all_names, location) {
         return all_names.concat([location.name, location.location_name, location.location_city]);
     }, []).filter(function (item) {
@@ -218,29 +252,39 @@ function createSearchList(locations) {
         }
     });
 
-    // Sort list and return
     location_names.sort(function (a, b) {
         return a.localeCompare(b);
     });
+
     return location_names;
 }
 
 function predictSearch(str) {
-    // Predict by location name
-    // Filter list by input string
+    // Filter list to only include strings that have given string
+    // as a substring
     var list = app.model.location_names.filter(function (place) {
         // There is probably a better way to do this with a trie
         return place.toLowerCase().includes(str.toLowerCase());
     });
 
-    // Full predictor with only top 5 results
-    fillPredictor('.predictive-results', list);
+    // User new list to fill prediction box 
+    // with given selector
+    fillPredictorBox('.predictive-results', list);
 }
 
-function fillPredictor(element, list) {
-    var $predictor = $(element);
+function fillPredictorBox(selector, list) {
+    // Use list to fill element with list items
+
+    // Set variable for element with selector
+    var $predictor = $(selector);
+
+    // Clear element
     $predictor.html("");
+
+    // Add first item for all results
     $predictor.append('\n            <li data-id="" \n                class="predictive-item"\n                data-name="All">Search all locations..</li>');
+
+    // Iterate through list creating and adding items
     var _iteratorNormalCompletion = true;
     var _didIteratorError = false;
     var _iteratorError = undefined;
@@ -252,7 +296,9 @@ function fillPredictor(element, list) {
             $predictor.append('\n            <li data-id="" \n                class="predictive-item"\n                data-name="' + location + '">' + location + '</li>');
         }
 
-        // Set handler
+        // Set handler on all newly created elements
+        // Handler creates click event to move selected item's data-name
+        // property value into search bar to let user manually continue search.
     } catch (err) {
         _didIteratorError = true;
         _iteratorError = err;
@@ -270,50 +316,51 @@ function fillPredictor(element, list) {
 
     $('.predictive-item').on('click', function () {
         var name = $(this).data('name');
+
+        // If user selects "All", just go ahead and search all
         if (name === "All") {
-            $('#location-search-form input[type="text"]').val("");
             processSearch();
-            revealResultsArea();
+            // Scroll down to reveal results
+            app.components.results_area.revealResultsArea();
+            // Now done. Hide box
             $('.predictive-box').hide();
         } else {
+            // Put data-name from item into input field
             $('#location-search-form input[type="text"]').val(name);
+            // Now done. Hide box
             $('.predictive-box').hide();
         }
     });
-}
-
-function createResultsList(str) {
-    var locations = app.model.raw_data.rows;
-    if (!str) return locations; // If no search criteria, return whole list
-    var results = locations.filter(function (location) {
-        if (location.name === str || location.location_name === str || location.location_city === str) {
-            return true;
-        } else {
-            return false;
-        }
-    });
-
-    return results;
 }
 
 function processSearch(str) {
     // First clear results and show loader
     $('.results-list').html("");
+    // Show loader while we wait for new results
     $('.results-section .loader').show();
+
+    // Clear input field
     $('#location-search-form input[type="text"]').val("");
 
+    // Initiate get and set up when for promise
     $.when(getData(str)).then(function (data) {
         // Pretend to get new search results with new query
         // and update model
         app.model.raw_data = data;
+
+        // This line is only to simulate new search results
         app.model.locations = createResultsList(str);
 
         // Update results and reset responsive elements
         app.components.results_area.update(locations);app.model.locations;
         setDimensionsForResponsiveElements();
+
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();
     }).fail(function (error) {
+
+        // Set up fail for offline dev workflow:
+        // Mostly the same as above
         console.error("Could not connect to API.", "Using session storage..", error);
         app.model.locations = createResultsList(str);
         // Update results and reset responsive elements
@@ -328,12 +375,16 @@ function processSearch(str) {
 function setEventHandlers() {
     // Search form
     $('#location-search-form').submit(function (e) {
-        var search_inquiry = $('input[type="text"]').val();
         e.preventDefault();
+        // Get search query from input
+        var search_inquiry = $('input[type="text"]').val();
         if (search_inquiry) {
+            // If search query, process new search
             processSearch(search_inquiry);
+            // Clear input
             $('input[type="text"]').val("");
-            revealResultsArea();
+            // Scroll down to reveal search area
+            app.components.results_area.revealResultsArea();
         }
     });
 
@@ -343,11 +394,13 @@ function setEventHandlers() {
         // Evaluate string on keyup - keydown fires before text is available
         $('#location-search-form input[type="text"]').keyup(function (e) {
             var search_inquiry = $('#location-search-form input[type="text"]').val();
-            //console.log('Key Down');
+            // Initiate predictive search process with current input
             predictSearch(search_inquiry);
+            // Show predictions
             $('.predictive-box').show();
             if (e.keyCode == 27) {
                 // User pressed esc key
+                // Hide box and clear input field
                 $('.predictive-box').hide();
                 $('#location-search-form input[type="text"]').val("");
             }
@@ -355,6 +408,7 @@ function setEventHandlers() {
     });
 
     // Hide prediction box when focus isn't on search
+    // AND cursor isn't over the box
     $('#location-search-form input[type="text"]').focusout(function () {
         if (!$('.predictive-box').is(":hover")) {
             $('.predictive-box').hide();
@@ -363,8 +417,11 @@ function setEventHandlers() {
 
     // Fill search bar with whatever a user selects from list
     $('.predictive-item').on('click', function () {
+        // Clear first
         $('.predictive-results').html("");
+        // Get name from item clicked
         $(this).data('name');
+        // Hide box
         $('.predictive-box').hide();
     });
 }

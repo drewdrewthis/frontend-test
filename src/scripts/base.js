@@ -20,7 +20,7 @@ function setDimensionsForResponsiveElements() {
 
 var app = {
     // Initialize the app
-    // This lays out the structure
+    // This lays out the structure as a reference
     model: {
         raw_data: undefined, //All data from server
         locations: undefined, //Current result data
@@ -28,16 +28,23 @@ var app = {
     },
     components: {
         main_carousel: undefined, // 
-        results_area: undefined
+        results_area: {
+            update: undefined, // Update results area
+            revealResultsArea: undefined // Scroll down to reveal results
+        }
     },
     init: function() {
         // Use session storage if available
         if (sessionStorage.getItem('location_data')) {
+            // Get data from session storage as string
             let dataString = sessionStorage.getItem('location_data');
+            // Parse to JSON for use in app
             app.model.raw_data = JSON.parse(dataString);
             console.log('Using data from session storage..', app.model.raw_data);
+            // Now that data is set, set up
             app.setUp();
         } else {
+            // Show loader while waiting for api
             $('.loader').show();
             app.setData();
             
@@ -47,9 +54,11 @@ var app = {
     setData: function() {
         $.when(getData()).then(function(data) {
             console.log('Retrieved data', data);
+            // Store data into sessions storage
             sessionStorage.setItem('location_data', JSON.stringify(data));
             app.model.raw_data = data;
             app.setUp();
+            // Once everything is loaded, fade loader
             $('.loader').fadeOut();
         });
     },

@@ -1,6 +1,9 @@
 function updateResults(locations) {
     // Fill results div
     console.log('Update Results', locations);
+
+    // Iterate through returned results and use list to 
+    // populate results section
     locations.map(function(location, index) {
         let location_url = location.url;
         let workplace = location.name;
@@ -38,6 +41,6 @@ function revealResultsArea() {
 function createResultsArea() {
     return {
         update: updateResults,
-        scrollTo: revealResultsArea
+        revealResultsArea: revealResultsArea
     }
 }
