@@ -31,7 +31,7 @@ var app = {
         if (sessionStorage.getItem('location_data')) {
             var dataString = sessionStorage.getItem('location_data');
             app.model.raw_data = JSON.parse(dataString);
-            console.log('Data from session storate', app.model.raw_data);
+            console.log('Using data from session storage..', app.model.raw_data);
             app.setUp();
         } else {
             $('.loader').show();
@@ -64,7 +64,6 @@ var app = {
         // Wait for the documet ready before building views
         $(document).ready(function () {
             app.model.location_names = createSearchList(app.model.raw_data.rows);
-            console.log('Location Names', app.model.location_names);
             app.components.main_carousel = createCarousel('carousel', main_images);
             updateResults(locations);
             $('.search-box').show();

@@ -63,10 +63,10 @@ gulp.task('scripts', function() {
             presets: ['es2015']
         }))
 		.pipe(concat('main.js'))
+		.pipe(sourcemaps.write())
 		.pipe(gulp.dest('./dist/js'))
 		.pipe(rename('main.min.js'))
 		.pipe(uglify())
-		.pipe(sourcemaps.write())
 		.pipe(gulp.dest('dist/js'));
 });
 
