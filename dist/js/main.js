@@ -11,6 +11,76 @@ function getData(search_inquiry) {
     });
 }
 
+function setDimensionsForResponsiveElements() {
+    $('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
+}
+
+var app = {
+    // Initialize the app
+    // This lays out the structure
+    model: {
+        raw_data: undefined, //All data from server
+        locations: undefined, //Current result data
+        location_names: undefined //Possible search results
+    },
+    components: {
+        main_carousel: undefined // 
+    },
+    init: function init() {
+        // Use session storage if available
+        if (sessionStorage.getItem('location_data')) {
+            var dataString = sessionStorage.getItem('location_data');
+            app.model.raw_data = JSON.parse(dataString);
+            console.log('Data from session storate', app.model.raw_data);
+            app.setUp();
+        } else {
+            $('.loader').show();
+            app.setData();
+        }
+    },
+    // Get and set data from the API
+    setData: function setData() {
+        $.when(getData()).then(function (data) {
+            console.log('Retrieved data', data);
+            sessionStorage.setItem('location_data', JSON.stringify(data));
+            app.model.raw_data = data;
+            app.setUp();
+            $('.loader').fadeOut();
+        });
+    },
+    // Set up views
+    setUp: function setUp() {
+        // Set result data from all data
+        app.model.locations = app.model.raw_data.rows;
+        var locations = app.model.locations.slice(0, Math.min(max_results, app.model.locations.length - 1));
+
+        // This was initially set up to just have a carousel for one location
+        // var main_images = locations[0].image_urls.concat(locations[0].image_urls2);
+
+        var main_images = app.model.locations.reduce(function (all_images, location) {
+            return all_images.concat(location.image_urls);
+        }, []);
+
+        // Wait for the documet ready before building views
+        $(document).ready(function () {
+            app.model.location_names = createSearchList(app.model.raw_data.rows);
+            console.log('Location Names', app.model.location_names);
+            app.components.main_carousel = createCarousel('carousel', main_images);
+            updateResults(locations);
+            $('.search-box').show();
+            setEventHandlers();
+            setDimensionsForResponsiveElements();
+        });
+    }
+};
+
+// Start process
+app.init();
+$(window).resize(function () {
+    setDimensionsForResponsiveElements();
+});
+'use strict';
+
 function createCarousel(element, image_arr) {
 
     var $carousel = $(element);
@@ -96,6 +166,31 @@ function createCarousel(element, image_arr) {
     }, 6000);
     return $carousel;
 }
+'use strict';
+
+function updateResults(locations) {
+    // Fill results div
+    console.log('Update Results', locations);
+    locations.map(function (location, index) {
+        var location_url = location.url;
+        var workplace = location.name;
+        var location_name = location.location_name;
+        var review_score = location.rating || "-";
+        var price = location.day_price ? '$' + location.day_price + "/day" : "";
+        var image_url = location.image_urls2[0]; // Use smaller thumbs
+
+        $('.results-list').append('<li \n            id="location-' + index + '" \n            class="result-item" \n            style="background-image:url(\'' + image_url + '\'); display: none;">\n                <a href="' + (location_url || "#") + '">\n                    <ul class="location-info">\n                        <li>' + workplace + '</li>\n                        <li>' + location_name + '</li>\n                        <li>Score: ' + review_score + '</li>\n                        <li>' + price + '</li>\n                    </ul>\n                </a>\n            </li>');
+        $('#location-' + index).fadeIn(1000 * index); // Creates cool progressive fade in
+    });
+}
+
+function revealResultsArea() {
+    // Scroll down to display results
+    $('html, body').animate({
+        scrollTop: $(".results-section").height()
+    }, 1000);
+}
+'use strict';
 
 function createSearchList(locations) {
     var place_hash = {};
@@ -205,29 +300,7 @@ function processSearch(str) {
         $('.results-section .loader').fadeOut();
     });
 }
-
-function updateResults(locations) {
-    // Fill results div
-    console.log('Update Results', locations);
-    locations.map(function (location, index) {
-        var location_url = location.url;
-        var workplace = location.name;
-        var location_name = location.location_name;
-        var review_score = location.rating || "-";
-        var price = location.day_price ? '$' + location.day_price + "/day" : "";
-        var image_url = location.image_urls2[0]; // Use smaller thumbs
-
-        $('.results-list').append('<li \n            id="location-' + index + '" \n            class="result-item" \n            style="background-image:url(\'' + image_url + '\'); display: none;">\n                <a href="' + (location_url || "#") + '">\n                    <ul class="location-info">\n                        <li>' + workplace + '</li>\n                        <li>' + location_name + '</li>\n                        <li>Score: ' + review_score + '</li>\n                        <li>' + price + '</li>\n                    </ul>\n                </a>\n            </li>');
-        $('#location-' + index).fadeIn(1000 * index); // Creates cool progressive fade in
-    });
-}
-
-function revealResultsArea() {
-    // Scroll down to display results
-    $('html, body').animate({
-        scrollTop: $(".results-section").height()
-    }, 1000);
-}
+'use strict';
 
 function setEventHandlers() {
     // Search form
@@ -267,72 +340,3 @@ function setEventHandlers() {
         $('.predictive-box').hide();
     });
 }
-
-function setDimensionsForResponsiveElements() {
-    $('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
-}
-
-var app = {
-    // Initialize the app
-    // This lays out the structure
-    model: {
-        raw_data: undefined, //All data from server
-        locations: undefined, //Current result data
-        location_names: undefined //Possible search results
-    },
-    components: {
-        main_carousel: undefined // 
-    },
-    init: function init() {
-        // Use session storage if available
-        if (sessionStorage.getItem('location_data')) {
-            var dataString = sessionStorage.getItem('location_data');
-            app.model.raw_data = JSON.parse(dataString);
-            console.log('Data from session storate', app.model.raw_data);
-            app.setUp();
-        } else {
-            $('.loader').show();
-            app.setData();
-        }
-    },
-    // Get and set data from the API
-    setData: function setData() {
-        $.when(getData()).then(function (data) {
-            console.log('Retrieved data', data);
-            sessionStorage.setItem('location_data', JSON.stringify(data));
-            app.model.raw_data = data;
-            app.setUp();
-            $('.loader').fadeOut();
-        });
-    },
-    // Set up views
-    setUp: function setUp() {
-        // Set result data from all data
-        app.model.locations = app.model.raw_data.rows;
-        var locations = app.model.locations.slice(0, Math.min(max_results, app.model.locations.length - 1));
-
-        // This was initially set up to just have a carousel for one location
-        // var main_images = locations[0].image_urls.concat(locations[0].image_urls2);
-
-        var main_images = app.model.locations.reduce(function (all_images, location) {
-            return all_images.concat(location.image_urls);
-        }, []);
-
-        // Wait for the documet ready before building views
-        $(document).ready(function () {
-            app.model.location_names = createSearchList(app.model.raw_data.rows);
-            console.log('Location Names', app.model.location_names);
-            app.components.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
-            $('.search-box').show();
-            setEventHandlers();
-            setDimensionsForResponsiveElements();
-        });
-    }
-};
-
-// Start process
-app.init();
-$(window).resize(function () {
-    setDimensionsForResponsiveElements();
-});
