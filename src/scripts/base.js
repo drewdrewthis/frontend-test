@@ -1,6 +1,6 @@
 'use strict';
 
-const max_results = 20;
+const max_results = 20; //Use this number to cap the amount of data being requested from API
 
 function getData(search_inquiry) {
     // Search inquiry would be used to get specific results from API

@@ -1,6 +1,6 @@
 'use strict';
 
-var max_results = 20;
+var max_results = 20; //Use this number to cap the amount of data being requested from API
 
 function getData(search_inquiry) {
     // Search inquiry would be used to get specific results from API
@@ -229,6 +229,7 @@ function predictSearch(str) {
     // Predict by location name
     // Filter list by input string
     var list = app.model.location_names.filter(function (place) {
+        // There is probably a better way to do this with a trie
         return place.toLowerCase().includes(str.toLowerCase());
     });
 
