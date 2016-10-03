@@ -94,7 +94,7 @@ function processSearch(str) {
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();
     }).fail(function(error) {
-        console.error("Could not connect to API","Using session storage..", error);
+        console.error("Could not connect to API.","Using session storage..", error);
         app.model.locations = createResultsList(str);
         // Update results and reset responsive elements
         updateResults(app.model.locations);
