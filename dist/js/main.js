@@ -346,6 +346,11 @@ function setEventHandlers() {
             //console.log('Key Down');
             predictSearch(search_inquiry);
             $('.predictive-box').show();
+            if (e.keyCode == 27) {
+                // User pressed esc key
+                $('.predictive-box').hide();
+                $('#location-search-form input[type="text"]').val("");
+            }
         });
     });
 
