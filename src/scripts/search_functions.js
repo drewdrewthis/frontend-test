@@ -26,7 +26,7 @@ function predictSearch(str) {
     });
 
     // Full predictor with only top 5 results
-    fillPredictor('.predictive-results', list.slice(0, 5));
+    fillPredictor('.predictive-results', list);
 }
 
 function fillPredictor(element, list) {
