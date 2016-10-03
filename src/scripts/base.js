@@ -34,6 +34,8 @@ var app = {
         }
     },
     init: function() {
+        // Init app. Start off by getting data from API url provided
+        // in ReadMe. Use this to populate results and carousel.
         // Use session storage if available
         if (sessionStorage.getItem('location_data')) {
             // Get data from session storage as string

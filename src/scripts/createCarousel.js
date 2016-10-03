@@ -1,10 +1,13 @@
-function createCarousel(element, image_arr) {
+function createCarousel(selector, image_arr) {
 
-    var $carousel = $(element);
-    $carousel.current_image_index = 0; // 
+    // Initialize value for carousel element with selector
+    var $carousel = $(selector);
+    $carousel.current_image_index = 0;
     $carousel.images = image_arr;
 
     function createControls() {
+
+        // HTML template for carousel controls
         var template = `
             <div class="control-wrapper left">
                 <div class="control left-control">
@@ -18,26 +21,34 @@ function createCarousel(element, image_arr) {
             </div>
         `;
 
+        // Add controls HTML to carousel
         $carousel.append(template);
 
+         // Set event handlers for click progress slides
         $carousel.find('.right-control').on('click', function() {
             $carousel.nextImage();
         });
-
         $carousel.find('.left-control').on('click', function() {
             $carousel.prevImage();
         });
     }
 
     $carousel.goToImage = function(index) {
+
+        // Go to new image with given index
+        // Fade out all items - failsafe
         $('.carousel-item').fadeOut(2000);
+
+        // Fade in specific slide
         $(`.carousel-item[data-id="${index}"]`).fadeIn(2000);
 
+        // If no slides, hide useless controls
         if ($carousel.images.length === 0) {
             $carousel.find('.control').hide();
         }
         /*
-        // Unnecessary with new looping feature
+        // These conditionals unnecessary with new 
+        // looping feature I've implimented
         else if ($carousel.current_image_index === 0) {
             $carousel.find('.left-control').hide();
             $carousel.find('.right-control').show();
@@ -47,11 +58,13 @@ function createCarousel(element, image_arr) {
         } 
         */
         else {
+            // Show controls if there are images // failsafe
             $carousel.find('.control').show();
         }
     }
 
     $carousel.updateSlides = function(slides, headlines) {
+        // Update carousel slides
         $carousel.images = slides;
         $carousel.find('ul').html("");
         slides.forEach(function(url, index) {
