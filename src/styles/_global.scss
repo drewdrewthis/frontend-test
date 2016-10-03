@@ -1,6 +1,6 @@
 $darkgrey: #2a2a2a;
 $darkblue: #2e2d58;
-$header-height: 35px;
+$header-height: 50px;
 
 * {
 	box-sizing: border-box;
@@ -17,13 +17,17 @@ body {
 #header {
 	width: 100%;
 	padding: 5px;
+	height: $header-height;
 	border-bottom: 3px solid $darkblue;
-	a {
-		display: inline-block;
-		height: $header-height;
-		img {
+	#logo {
+		height: 100%;
+		a {
+			display: inline-block;
 			height: 100%;
-			width: auto;
+			img {
+				height: 100%;
+				width: auto;
+			}
 		}
 	}
 }
@@ -39,6 +43,3 @@ ul {
 }
 
 
-@import 'components/carousel';
-@import 'components/results-section';
-@import 'components/search-area';

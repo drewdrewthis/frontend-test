@@ -8,6 +8,7 @@
 	z-index: 10;
 	width: 45%;
 	min-width: 500px;
+	display: none;
 	#location-search-form {
 		border-radius: 25px;
 		overflow: hidden;
@@ -24,6 +25,7 @@
 				background: $darkblue;
 				color: white;
 				text-transform: uppercase;
+				cursor: pointer;
 			}
 		}
 	}
