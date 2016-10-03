@@ -1,6 +1,7 @@
 'use strict';
 
 const max_results = 20;
+const maps_key = 'AIzaSyD6_xJymcFN1dZJUZAQiQ81lprzaZFXnWM';
 
 function getData(search_inquiry) {
     // Search inquiry would be used to get specific results from API
@@ -12,7 +13,7 @@ function getData(search_inquiry) {
 }
 
 function setDimensionsForResponsiveElements() {
-    $('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
+    //$('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
 }
 
 var app = {
@@ -24,7 +25,17 @@ var app = {
         location_names: undefined //Possible search results
     },
     components: {
-        main_carousel: undefined // 
+        main_carousel: undefined,
+        results_area: undefined,
+        map: {
+            map: null,
+            center: {
+                lat: null,
+                lng: null
+            },
+            update: null,
+            setMarker: null
+        }
     },
     init: function() {
         // Use session storage if available
@@ -36,7 +47,6 @@ var app = {
         } else {
             $('.loader').show();
             app.setData();
-            
         }
     },
     // Get and set data from the API
@@ -66,11 +76,14 @@ var app = {
         $(document).ready(function() {
             app.model.location_names = createSearchList(app.model.raw_data.rows);
             console.log('Location Names', app.model.location_names);
+
             app.components.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
+            app.results_area = createResultsArea();
+            app.results_area.update(locations);
+            
             $('.search-box').show();
             setEventHandlers();
-            setDimensionsForResponsiveElements();
+            setDimensionsForResponsiveElements(); 
         });
     }
 }
@@ -79,4 +92,4 @@ var app = {
 app.init();
 $(window).resize(function() {
     setDimensionsForResponsiveElements();
-})
+});

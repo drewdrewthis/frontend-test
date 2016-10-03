@@ -87,10 +87,9 @@ function processSearch(str) {
         app.model.locations = createResultsList(str);
 
         // Update results and reset responsive elements
-        updateResults(app.model.locations);
-        setDimensionsForResponsiveElements();
+        app.results_area.update(app.model.locations);
+        //setDimensionsForResponsiveElements();
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();
     });
-
 }

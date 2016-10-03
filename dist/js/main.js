@@ -1,6 +1,7 @@
 'use strict';
 
 var max_results = 20;
+var maps_key = 'AIzaSyD6_xJymcFN1dZJUZAQiQ81lprzaZFXnWM';
 
 function getData(search_inquiry) {
     // Search inquiry would be used to get specific results from API
@@ -12,7 +13,7 @@ function getData(search_inquiry) {
 }
 
 function setDimensionsForResponsiveElements() {
-    $('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
+    //$('ul.results-list').css('width', window.innerWidth / 5 * $('.result-item').length + 'px');
 }
 
 var app = {
@@ -24,7 +25,17 @@ var app = {
         location_names: undefined //Possible search results
     },
     components: {
-        main_carousel: undefined // 
+        main_carousel: undefined,
+        results_area: undefined,
+        map: {
+            map: null,
+            center: {
+                lat: null,
+                lng: null
+            },
+            update: null,
+            setMarker: null
+        }
     },
     init: function init() {
         // Use session storage if available
@@ -65,8 +76,11 @@ var app = {
         $(document).ready(function () {
             app.model.location_names = createSearchList(app.model.raw_data.rows);
             console.log('Location Names', app.model.location_names);
+
             app.components.main_carousel = createCarousel('carousel', main_images);
-            updateResults(locations);
+            app.results_area = createResultsArea();
+            app.results_area.update(locations);
+
             $('.search-box').show();
             setEventHandlers();
             setDimensionsForResponsiveElements();
@@ -172,6 +186,8 @@ function updateResults(locations) {
     // Fill results div
     console.log('Update Results', locations);
     locations.map(function (location, index) {
+        var lat = location.points[0].latitude;
+        var lng = location.points[0].longitude;
         var location_url = location.url;
         var workplace = location.name;
         var location_name = location.location_name;
@@ -181,6 +197,10 @@ function updateResults(locations) {
 
         $('.results-list').append('<li \n            id="location-' + index + '" \n            class="result-item" \n            style="background-image:url(\'' + image_url + '\'); display: none;">\n                <a href="' + (location_url || "#") + '">\n                    <ul class="location-info">\n                        <li>' + workplace + '</li>\n                        <li>' + location_name + '</li>\n                        <li>Score: ' + review_score + '</li>\n                        <li>' + price + '</li>\n                    </ul>\n                </a>\n            </li>');
         $('#location-' + index).fadeIn(1000 * index); // Creates cool progressive fade in
+
+        if (app.components.map.setMarker) {
+            app.components.map.setMarker(location_name, lat, lng);
+        }
     });
 }
 
@@ -190,6 +210,51 @@ function revealResultsArea() {
         scrollTop: $(".results-section").height()
     }, 1000);
 }
+
+function createResultsArea() {
+    return {
+        update: updateResults,
+        scrollTo: revealResultsArea
+    };
+}
+'use strict';
+
+var map;
+var marker;
+
+function initialize() {
+    var myLatLng = new google.maps.LatLng(52.305584, 4.949819);
+    var myOptions = {
+        zoom: 8,
+        center: myLatLng,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    };
+
+    map = new google.maps.Map(document.getElementById('map'), myOptions);
+
+    // Onload handler to fire off the app.
+    google.maps.event.addDomListener(window, 'load', initialize);
+}
+
+function setMarker(title, lat, lng) {
+    var myLatLng = new google.maps.LatLng(lat, lng);
+    var marker = new google.maps.Marker({
+        position: myLatLng,
+        map: map,
+        title: title
+    });
+
+    return marker;
+}
+
+function updateMap(lat, lng) {
+    var newLatLng = new google.maps.LatLng(lat, lng);
+    map.setCenter(newLatLng);
+};
+
+app.components.map.map = map;
+app.components.map.setMarker = setMarker;
+app.components.map.update = updateMap;
 'use strict';
 
 function createSearchList(locations) {
@@ -294,8 +359,8 @@ function processSearch(str) {
         app.model.locations = createResultsList(str);
 
         // Update results and reset responsive elements
-        updateResults(app.model.locations);
-        setDimensionsForResponsiveElements();
+        app.results_area.update(app.model.locations);
+        //setDimensionsForResponsiveElements();
         // Hide loader after loading new results
         $('.results-section .loader').fadeOut();
     });

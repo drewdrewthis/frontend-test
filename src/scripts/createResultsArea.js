@@ -2,6 +2,8 @@ function updateResults(locations) {
     // Fill results div
     console.log('Update Results', locations);
     locations.map(function(location, index) {
+        let lat = location.points[0].latitude;
+        let lng = location.points[0].longitude;
         let location_url = location.url;
         let workplace = location.name;
         let location_name = location.location_name;
@@ -23,6 +25,10 @@ function updateResults(locations) {
                 </a>
             </li>`);
         $('#location-'+index).fadeIn(1000 * index); // Creates cool progressive fade in
+        
+        if(app.components.map.setMarker) {
+            app.components.map.setMarker(location_name,lat,lng);
+        }
     });
 }
 
@@ -31,4 +37,11 @@ function revealResultsArea() {
     $('html, body').animate({
         scrollTop: $(".results-section").height()
      }, 1000);
+}
+
+function createResultsArea() {
+	return {
+		update: updateResults,
+		scrollTo: revealResultsArea
+	}
 }
