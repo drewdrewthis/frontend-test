@@ -30,8 +30,6 @@ gulp.task('fa', function() {
 	  .pipe(gulp.dest('dist/fonts/font-awesome/'));
 });
 
-
-
 gulp.task('copy-html', function() {
 	return gulp.src('src/index.html')
 	  .pipe(gulp.dest('dist'));

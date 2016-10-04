@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<link rel="stylesheet" href="dist/fonts/font-awesome/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="dist/css/main.css">
+</head>
+<body>
+	<header id="header" class="">
+		<div id="logo"><a href="#"><img src="dist/images/logo-291x50.png" alt=""></a></div>
+		<nav class="nav"></nav>
+	</header><!-- /header -->
+	<section class="carousel-section">
+		<div class="loader">Loading...</div>
+		<carousel></carousel>
+		<div class="search-box">
+			<form id="location-search-form">
+				<input type="text" 
+					   name="search" 
+					   autocomplete="off"
+					   autofocus
+					   placeholder="Search by city or location.."><input type="submit" name="search" value="Search">
+			</form>
+			<div class="predictive-box">
+				<ul class="predictive-results"></ul>
+			</div>
+		</div>
+	</section>
+	<section class="results-section">
+		<div class="loader">Loading...</div>
+		<ul class="results-list"></ul>	
+	</section>
+	<script src="dist/js/vendor/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="dist/js/main.js" type="text/javascript" charset="utf-8"></script>
+</body>
+</html>
