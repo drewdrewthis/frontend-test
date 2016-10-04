@@ -152,6 +152,7 @@ function createCarousel(selector, image_arr) {
 
     $carousel.updateSlides = function (slides, headlines) {
         // Update carousel slides
+        // Can be used to update slides with new images and new headlines
         $carousel.images = slides;
         $carousel.find('ul').html("");
         slides.forEach(function (url, index) {
@@ -185,13 +186,16 @@ function createCarousel(selector, image_arr) {
     };
 
     createControls();
-    $carousel.append('<ul></ul>');
+    $carousel.append('<ul></ul>'); // Set ul to receive li elements
     $carousel.updateSlides(image_arr, ["Fast, Easy, Flexible", "Book one of our spaces"]);
+
+    // Sets up auto play
     setInterval(function () {
         if (!$carousel.is(":hover")) {
             $carousel.nextImage();
         }
     }, 6000);
+
     return $carousel;
 }
 'use strict';
